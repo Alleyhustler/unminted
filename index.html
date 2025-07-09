@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="void">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNMINTED [0x0000null]</title>
+    <style>
+        :root {
+            --glow: #0ff;
+            --void: #111;
+            --static: #222;
+            --error: #f05;
+            --text: #ddd;
+            --border: #333;
+        }
+        
+        @font-face {
+            font-family: 'Terminal';
+            src: url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap');
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inconsolata', monospace;
+        }
+        
+        body {
+            background-color: var(--void);
+            color: var(--text);
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(0, 255, 255, 0.02) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(255, 0, 85, 0.02) 0%, transparent 20%);
+        }
+        
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .glitch-effect {
+            position: relative;
+        }
+        
+        .glitch-effect::before, .glitch-effect::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.8;
+        }
+        
+        .glitch-effect::before {
+            color: var(--glow);
+            z-index: -1;
+            animation: glitch 3s infinite;
+        }
+        
+        .glitch-effect::after {
+            color: var(--error);
+            z-index: -2;
+            animation: glitch 2s infinite reverse;
+        }
+
+        .terminal {
+            background-color: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1rem;
+            margin: 1rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .top-right-links {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .top-right-links {
+                margin-top: 1rem;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+                    
+            .social-link {
+                color: var(--text);
+                text-decoration: none;
+                font-size: 0.9rem;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                transition: color 0.3s;
+            }
+        }
+        
+        .terminal::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                transparent,
+                transparent 50%,
+                rgba(0, 255, 255, 0.05) 50%,
+                rgba(0, 255, 255, 0.05)
+            ;
+            background-size: 100% 8px;
+            pointer-events: none;
+        }
+        
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 99;
+            display: none;
+        }
+        
+        .static {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    rgba(0, 0, 0, 0.15),
+                    rgba(0, 0, 0, 0.15) 1px,
+                    transparent 1px,
+                    transparent 2px
+                ),
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="1" height="1" x="0" y="0" fill="rgba(0,255,255,0.05)"/></svg>');
+            background-size: auto, 10px 10px;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.1;
+            animation: static 0.2s infinite;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            header {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+            
+            nav ul {
+                margin-top: 1rem;
+                justify-content: center;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+            }
+        }
+        
+        /* New interface elements */
+        .mint-interface {
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            background: rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+        
+        .mint-interface::before {
+            content: "MINT CONSOLE";
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            background: var(--void);
+            padding: 0 10px;
+            font-size: 0.8rem;
+            color: var(--glow);
+        }
+        
+        .mint-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 1rem;
+        }
+        
+        .mint-input {
+            flex-grow: 1;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 0.5rem;
+        }
+        
+        .mint-btn {
+            background: transparent;
+            border: 1px solid var(--glow);
+            color: var(--glow);
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .mint-btn:hover {
+            background: rgba(0, 255, 255, 0.1);
+        }
+        
+        .mint-btn-disabled {
+            border-color: var(--error);
+            color: var(--error);
+            cursor: not-allowed;
+        }
+        /* Add this to your existing CSS */
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-img {
+            width: 200px; /* Downscaled from 200px for better UI proportion */
+            height: 200px;
+            object-fit: contain;
+            filter: 
+                drop-shadow(0 0 5px var(--glow))
+                contrast(1.2)
+                sepia(0.5) 
+                hue-rotate(160deg);
+            transition: all 0.4s ease;
+            image-rendering: crisp-edges;
+        }
+
+        .logo-img:hover {
+            filter:
+                drop-shadow(0 0 12px var(--quantum))
+                brightness(1.2)
+                hue-rotate(60deg);
+            transform: scale(1.05) rotate(2deg);
+        }
+
+        .logo-glitch {
+            animation: logo-glitch 1s infinite;
+        }
+
+        /* Responsive adjustment */
+        @media (max-width: 768px) {
+            .logo-img {
+                width: 200px;
+                height: 200px;
+            }
+        }
+        .fixed-top-right {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 1rem;
+    display: flex;
+    gap: 10px;
+    z-index: 100;
+}
+
+    </style>
+</head>
+<body>
+    <div class="static"></div>
+    
+    <div class="corner-decoration top-left"></div>
+    <div class="corner-decoration top-right"></div>
+    <div class="corner-decoration bottom-left"></div>
+    <div class="corner-decoration bottom-right"></div>
+    
+    <div class="container">
+<header style="position: relative;">
+    <div class="logo-container">
+        <img src="image-removebg-preview (3).png" alt="UNMINTED Logo" class="logo-img">
+        <div class="logo-text glitch-effect" data-text="UNMINTED">UNM<span>INTED</span> COIN</div>
+    </div>
+
+    <!-- Add this container and move it outside the flex flow -->
+    <div class="top-right-links fixed-top-right">
+        <button class="wallet-btn" id="connect-wallet">CONNECT WALLET</button>
+        <a href="https://x.com/unmintedcoin" class="social-link twitter" target="_blank">TWITTER</a>
+        <a href="#" class="social-link ca" id="contract-link">CONTRACT</a>
+    </div>
+</header>
+
+        
+        <main>
+            <section class="hero">
+                <h1 class="glitch-text">THE UNMINTED COIN</h1>
+                <p class="subtitle typewriter">$UNMINTED was never created. Yet it exists.</p>
+                
+                <div class="price-display">
+                    <div class="price">$0.<span id="price-value">0000null</span></div>
+                    <div class="price-change" id="price-change">+0.00% (24h)</div>
+                </div>
+                
+                <div>
+                    <a href="#" class="btn btn-disabled" id="buy-btn">BUY (IMPOSSIBLE)</a>
+                    <a href="#" class="btn btn-error" id="access-btn">ATTEMPT MINT</a>
+                </div>
+            </section>
+            
+            <div class="terminal">
+                <p>> Initializing connection to UNMINTED network...</p>
+                <p>> Establishing secure channel [0x0000null]</p>
+                <p>> ERROR: No mint function found</p>
+                <p>> WARNING: Token was never deployed</p>
+                <p>> Query: How can you trade what was never minted?</p>
+                <p>> A paradox wrapped in a blockchain</p>
+                <p>> Download Failed: Whitepaper Not Found</p>
+                <p>> <span class="cursor">_</span></p>
+            </div>
+            
+            <!-- New mint interface -->
+            <div class="mint-interface">
+                <p>MINT CONSOLE v0.0.0 (PROTOTYPE)</p>
+                <p>Attempt to mint the unmintable. The contract doesn't exist, but try anyway.</p>
+                
+                <div class="mint-controls">
+                    <input type="text" class="mint-input" placeholder="AMOUNT TO MINT (IMPOSSIBLE)" disabled>
+                    <button class="mint-btn mint-btn-disabled" id="mint-btn">MINT</button>
+                </div>
+                
+                <p style="margin-top: 1rem; color: var(--error); font-size: 0.8rem;">
+                    WARNING: This interface is a theoretical construct. No actual minting will occur.
+                </p>
+            </div>
+            
+            <div class="grid">
+                <div class="card">
+                    <h3>THE PARADOX</h3>
+                    <p>A coin that was never minted cannot exist. Yet here it is. A digital ghost in the machine, persisting despite its impossibility.</p>
+                </div>
+                
+                <div class="card">
+                    <h3>NULL ORIGIN</h3>
+                    <p>Blockchain records show no creation event. No deployer address. No initial supply. The coin simply... is.</p>
+                </div>
+                
+                <div class="card">
+                    <h3>QUANTUM STATE</h3>
+                    <p>Total supply: both 0 and infinite. Circulating supply: undefined. Market cap: exists only when observed.</p>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <p>THE UNMINTED COIN WAS NEVER CREATED. OR WAS IT? [DISCLAIMER: 0x0000null]</p>
+            <p>This interface simulates interaction with a non-existent asset. Any perceived value is imaginary.</p>
+        </footer>
+    </div>
+    
+    <div class="overlay" id="overlay"></div>
+    
+    <div class="error-popup" id="error-popup">
+        <h2>MINT FAILED</h2>
+        <p>You are attempting to mint a coin that was never deployed. The contract you're interacting with doesn't exist.</p>
+        <p>This interface is a philosophical experiment in blockchain ontology.</p>
+        <a href="#" class="btn" id="close-popup">ACKNOWLEDGE</a>
+    </div>
+    
+    <script>
+        // Simulate price fluctuations
+        function updatePrice() {
+            const baseValue = 0.0000;
+            const fluctuation = (Math.random() * 0.0004).toFixed(4);
+            const newValue = (baseValue + parseFloat(fluctuation)).toFixed(4);
+            
+            document.getElementById('price-value').textContent = newValue.substring(2);
+            
+            // Random price change indicator
+            const change = (Math.random() * 20 - 10).toFixed(2);
+            const changeElement = document.getElementById('price-change');
+            
+            if (change > 0) {
+                changeElement.textContent = `+${change}% (24h)`;
+                changeElement.style.color = '#0f0';
+            } else {
+                changeElement.textContent = `${change}% (24h)`;
+                changeElement.style.color = '#f00';
+            }
+            
+            // Random glitch effect
+            if (Math.random() > 0.7) {
+                document.body.classList.add('glitch');
+                setTimeout(() => {
+                    document.body.classList.remove('glitch');
+                }, 200);
+            }
+        }
+        
+        // Update price every 3 seconds
+        setInterval(updatePrice, 3000);
+        updatePrice(); // Initial call
+        
+        // Error popup interaction
+        document.getElementById('access-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('error-popup').style.display = 'block';
+        });
+        
+        document.getElementById('close-popup').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('error-popup').style.display = 'none';
+        });
+        
+        // Wallet connection simulation
+        document.getElementById('connect-wallet').addEventListener('click', function() {
+            const walletBtn = this;
+            walletBtn.textContent = "CONNECTING...";
+            walletBtn.disabled = true;
+            
+            setTimeout(() => {
+                // Simulate failed connection
+                walletBtn.textContent = "ERROR: NO CONTRACT";
+                walletBtn.style.color = '#f05';
+                walletBtn.style.borderColor = '#f05';
+                
+                // Add error message to terminal
+                const terminal = document.querySelector('.terminal');
+                const errorMsg = document.createElement('p');
+                errorMsg.textContent = "> WALLET CONNECTION FAILED: No mint function found";
+                errorMsg.style.color = '#f05';
+                
+                const cursor = terminal.querySelector('.cursor');
+                terminal.insertBefore(errorMsg, cursor);
+                terminal.scrollTop = terminal.scrollHeight;
+                
+                // Reset button after delay
+                setTimeout(() => {
+                    walletBtn.textContent = "CONNECT WALLET";
+                    walletBtn.style.color = '';
+                    walletBtn.style.borderColor = '';
+                    walletBtn.disabled = false;
+                }, 3000);
+            }, 1500);
+        });
+        
+        // Contract address interaction
+        document.getElementById('contract-link').addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Add error message to terminal
+            const terminal = document.querySelector('.terminal');
+            const errorMsg = document.createElement('p');
+            errorMsg.textContent = "> CONTRACT ADDRESS: 0x0000000000000000000000000000000000000000";
+            errorMsg.style.color = '#0ff';
+            
+            const cursor = terminal.querySelector('.cursor');
+            terminal.insertBefore(errorMsg, cursor);
+            terminal.scrollTop = terminal.scrollHeight;
+            
+            // Create popup notification
+            const notification = document.createElement('div');
+            notification.textContent = 'CONTRACT ADDRESS COPIED: NULL ADDRESS';
+            notification.style.position = 'fixed';
+            notification.style.bottom = '20px';
+            notification.style.left = '50%';
+            notification.style.transform = 'translateX(-50%)';
+            notification.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+            notification.style.color = '#0ff';
+            notification.style.padding = '10px 20px';
+            notification.style.border = '1px solid #0ff';
+            notification.style.borderRadius = '4px';
+            notification.style.zIndex = '1000';
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 500);
+            }, 2000);
+        });
+        
+        // Mint button interaction
+        document.getElementById('mint-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Add mint attempt to terminal
+            const terminal = document.querySelector('.terminal');
+            const attemptMsg = document.createElement('p');
+            attemptMsg.textContent = "> ATTEMPTING TO MINT UNMINTED COIN...";
+            attemptMsg.style.color = '#0ff';
+            
+            const errorMsg = document.createElement('p');
+            errorMsg.textContent = "> MINT FAILED: Contract does not exist";
+            errorMsg.style.color = '#f05';
+            
+            const cursor = terminal.querySelector('.cursor');
+            terminal.insertBefore(attemptMsg, cursor);
+            terminal.insertBefore(errorMsg, cursor);
+            terminal.scrollTop = terminal.scrollHeight;
+            
+            // Create error notification
+            const notification = document.createElement('div');
+            notification.textContent = 'MINT IMPOSSIBLE: COIN WAS NEVER DEPLOYED';
+            notification.style.position = 'fixed';
+            notification.style.bottom = '20px';
+            notification.style.left = '50%';
+            notification.style.transform = 'translateX(-50%)';
+            notification.style.backgroundColor = 'rgba(255, 0, 85, 0.2)';
+            notification.style.color = '#fff';
+            notification.style.padding = '10px 20px';
+            notification.style.border = '1px solid #f05';
+            notification.style.zIndex = '1000';
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 500);
+            }, 3000);
+        });
+        
+        // Disabled button effects
+        const disabledButtons = document.querySelectorAll('.btn-disabled');
+        disabledButtons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Create error message element
+                const errorMsg = document.createElement('div');
+                errorMsg.textContent = 'ERROR: TRANSACTION IMPOSSIBLE';
+                errorMsg.style.position = 'fixed';
+                errorMsg.style.bottom = '20px';
+                errorMsg.style.left = '50%';
+                errorMsg.style.transform = 'translateX(-50%)';
+                errorMsg.style.backgroundColor = 'rgba(255, 0, 85, 0.2)';
+                errorMsg.style.color = '#fff';
+                errorMsg.style.padding = '10px 20px';
+                errorMsg.style.border = '1px solid #f05';
+                errorMsg.style.zIndex = '1000';
+                errorMsg.style.animation = 'glitch-text 1s infinite';
+                
+                document.body.appendChild(errorMsg);
+                
+                setTimeout(() => {
+                    errorMsg.style.opacity = '0';
+                    setTimeout(() => {
+                        document.body.removeChild(errorMsg);
+                    }, 500);
+                }, 2000);
+            });
+        });
+        
+        // Random terminal effects
+        const terminal = document.querySelector('.terminal');
+        setInterval(() => {
+            if (Math.random() > 0.8) {
+                terminal.style.borderColor = '#f05';
+                setTimeout(() => {
+                    terminal.style.borderColor = '#333';
+                }, 300);
+            }
+        }, 5000);
+        
+        // Random body glitch
+        setInterval(() => {
+            if (Math.random() > 0.9) {
+                document.body.style.transform = 'translateX(2px)';
+                setTimeout(() => {
+                    document.body.style.transform = 'translateX(0)';
+                }, 50);
+            }
+        }, 10000);
+        
+        // Typewriter effect for subtitle
+        const subtitle = document.querySelector('.subtitle');
+        const originalText = subtitle.textContent;
+        subtitle.textContent = '';
+        let i = 0;
+        const typeWriter = setInterval(() => {
+            if (i < originalText.length) {
+                subtitle.textContent += originalText.charAt(i);
+                i++;
+            } else {
+                clearInterval(typeWriter);
+            }
+        }, 50);
+    </script>
+</body>
+</html>
